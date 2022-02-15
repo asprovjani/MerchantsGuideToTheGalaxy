@@ -34,7 +34,9 @@ public class NotesService implements NotesServiceInterface {
                     addUnit(n.noteTokens[0], n.noteTokens[2].toUpperCase());
                     break;
 
-                // case D_ITEM_PRICE:
+                case D_ITEM_PRICE:
+                    addItem(n.noteTokens);
+                    break;
 
                 case Q_CONVERT_UNITS:
                     convertIntergalacticUnitsQuery(
@@ -109,6 +111,39 @@ public class NotesService implements NotesServiceInterface {
         }
 
         return -1;
+    }
+
+    /**
+     * Extracts the contents of the note tokens and adds
+     * the price for a single unit of an item to the item catalogue map.
+     *
+     * @param noteTokens The tokenized note.
+     */
+    public void addItem(String[] noteTokens) {
+        String item = noteTokens[noteTokens.length - 4];
+        double price = Double.parseDouble(noteTokens[noteTokens.length - 2]);
+
+        if (!this.itemsCatalogue.containsKey(item)) {
+            for (int i = 0; i < noteTokens.length - 4; i++) {
+                if (isReservedWord(noteTokens[i]) ||
+                        !this.intergalacticUnits.containsKey(noteTokens[i])) {
+                    System.out.printf("%s is not a valid intergalactic unit\n", noteTokens[i]);
+                    return;
+                }
+            }
+
+            String romanNumber = getRomanNotation(
+                    Arrays.copyOfRange(noteTokens, 0, noteTokens.length - 4)
+            );
+
+            if(romanNumber != null) {
+                int itemQuantity = romanToDecimal(romanNumber);
+                this.itemsCatalogue.put(item, price / itemQuantity);
+            }
+            else {
+                System.out.printf("The specified amount is not valid\n");
+            }
+        }
     }
 
     /**

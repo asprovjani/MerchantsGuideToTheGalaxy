@@ -80,6 +80,38 @@ public class NotesServiceTest {
         Assertions.assertEquals(expectedQueryResult, actualQueryResult);
     }
 
+    @Test
+    public void givenItem_whenAddItem_thenUpdateItemCatalogue() {
+        this.notesService.intergalacticUnits = new HashMap<String, String>() {
+            {
+                put("glob", "I");
+            }
+        };
+
+        this.notesService.addItem(new String[] {"glob", "glob", "silver","is", "34", "credits"});
+
+        double expectedCataloguePrice = 17.0;
+        double actualCataloguePrice = this.notesService.itemsCatalogue.get("silver");
+
+        Assertions.assertEquals(expectedCataloguePrice, actualCataloguePrice);
+    }
+
+    @Test
+    public void givenNotValidNote_whenAddItem_thenPrintErrorMessage() {
+        this.notesService.intergalacticUnits = new HashMap<String, String>() {
+            {
+                put("glob", "I");
+            }
+        };
+
+        this.notesService.addItem(new String[] {"glob", "pish", "silver","is", "34", "credits"});
+
+        String expectedOutput = "pish is not a valid intergalactic unit\n";
+        String actualOutput = out.toString();
+
+        Assertions.assertEquals(expectedOutput, actualOutput);
+    }
+
     @AfterAll
     static void cleanUp() {
         System.setOut(null);
