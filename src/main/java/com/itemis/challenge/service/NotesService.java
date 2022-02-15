@@ -1,10 +1,12 @@
 package com.itemis.challenge.service;
 
 import com.itemis.challenge.constants.NoteTypeEnum;
+import com.itemis.challenge.constants.RomanNumberEnum;
 import com.itemis.challenge.interfaces.NotesServiceInterface;
 import com.itemis.challenge.model.Note;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class NotesService implements NotesServiceInterface {
@@ -31,13 +33,17 @@ public class NotesService implements NotesServiceInterface {
                 case D_INTERGALACTIC_UNIT:
                     addUnit(n.noteTokens[0], n.noteTokens[2].toUpperCase());
                     break;
-                /*
-                case D_ITEM_PRICE:
+
+                // case D_ITEM_PRICE:
 
                 case Q_CONVERT_UNITS:
+                    convertIntergalacticUnitsQuery(
+                        Arrays.copyOfRange(n.noteTokens, 3, n.noteTokens.length - 1)
+                    );
+                    break;
 
-                case Q_ITEM_PRICE:
-                 */
+                //case Q_ITEM_PRICE:
+
                 default:
                     System.out.println("I have no idea what you are talking about");
                     break;
@@ -61,6 +67,93 @@ public class NotesService implements NotesServiceInterface {
                 System.out.printf("Intergalactic unit %s already exists\n", intergalacticUnit);
             }
         }
+    }
+
+    /**
+     * Prints the conversion of intergalactic units to decimal notation.
+     *
+     * @param intergalacticUnits The array containing the intergalactic units to be converted.
+     */
+    public void convertIntergalacticUnitsQuery(String[] intergalacticUnits) {
+        for (String unit : intergalacticUnits) {
+            if (isReservedWord(unit) || !this.intergalacticUnits.containsKey(unit)) {
+                System.out.printf("%s is not a valid intergalactic unit\n", unit);
+                return;
+            }
+        }
+
+        int queryResult = convertIntergalacticUnits(intergalacticUnits);
+
+        if (queryResult != -1) {
+            StringBuilder str = new StringBuilder();
+            for (String unit : intergalacticUnits) {
+                str.append(unit.concat(" "));
+            }
+            System.out.printf("%s is %d\n", str.toString().trim(), queryResult);
+        }
+        else {
+            System.out.printf("The specified amount is not valid\n");
+        }
+    }
+
+    /**
+     * Converts the intergalactic units to decimal notation.
+     *
+     * @param intergalacticUnits The array containing the intergalactic units to be converted
+     * @return the intergalactic units in decimal notation.
+     */
+    private int convertIntergalacticUnits(String[] intergalacticUnits) {
+        String romanNumber = getRomanNotation(intergalacticUnits);
+        if (romanNumber != null) {
+            return romanToDecimal(romanNumber);
+        }
+
+        return -1;
+    }
+
+    /**
+     * Converts the intergalactic units to roman notation.
+     *
+     * @param intergalacticUnits The intergalactic units to be converted to roman notation
+     * @return The intergalactic units in roman notation.
+     */
+    private String getRomanNotation(String[] intergalacticUnits) {
+        StringBuilder romanNotation = new StringBuilder();
+
+        for (String intergalacticUnit : intergalacticUnits) {
+            romanNotation.append(this.intergalacticUnits.get(intergalacticUnit));
+        }
+
+        if (romanNotation.toString()
+                .matches("^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")) {
+            return romanNotation.toString();
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts a number from roman to decimal notation.
+     *
+     * @param number The number to be converted from roman to decimal notation
+     * @return  The number in decimal notation.
+     */
+    private int romanToDecimal(String number) {
+        int decimalNumber = 0;
+
+        for (int i = 0; i < number.length(); i++) {
+            if (i != number.length() - 1 && RomanNumberEnum.getDecimalValue(number.charAt(i)) <
+                    RomanNumberEnum.getDecimalValue(number.charAt(i + 1))) {
+                decimalNumber += RomanNumberEnum.getDecimalValue(number.charAt(i + 1)) -
+                        RomanNumberEnum.getDecimalValue(number.charAt(i));
+                i++;
+            }
+            else {
+                decimalNumber += RomanNumberEnum.getDecimalValue(number.charAt(i));
+            }
+        }
+
+        return decimalNumber;
     }
 
     /**
