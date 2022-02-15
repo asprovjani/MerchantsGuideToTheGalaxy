@@ -5,6 +5,7 @@ import com.itemis.challenge.constants.RomanNumberEnum;
 import com.itemis.challenge.interfaces.NotesServiceInterface;
 import com.itemis.challenge.model.Note;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +45,12 @@ public class NotesService implements NotesServiceInterface {
                     );
                     break;
 
-                //case Q_ITEM_PRICE:
+                case Q_ITEM_PRICE:
+                    calculateItemPriceQuery(
+                        Arrays.copyOfRange(n.noteTokens, 4, n.noteTokens.length - 2),
+                        n.noteTokens[n.noteTokens.length - 2]
+                    );
+                    break;
 
                 default:
                     System.out.println("I have no idea what you are talking about");
@@ -126,14 +132,14 @@ public class NotesService implements NotesServiceInterface {
         if (!this.itemsCatalogue.containsKey(item)) {
             for (int i = 0; i < noteTokens.length - 4; i++) {
                 if (isReservedWord(noteTokens[i]) ||
-                        !this.intergalacticUnits.containsKey(noteTokens[i])) {
+                    !this.intergalacticUnits.containsKey(noteTokens[i])) {
                     System.out.printf("%s is not a valid intergalactic unit\n", noteTokens[i]);
                     return;
                 }
             }
 
             String romanNumber = getRomanNotation(
-                    Arrays.copyOfRange(noteTokens, 0, noteTokens.length - 4)
+                Arrays.copyOfRange(noteTokens, 0, noteTokens.length - 4)
             );
 
             if(romanNumber != null) {
@@ -144,6 +150,61 @@ public class NotesService implements NotesServiceInterface {
                 System.out.printf("The specified amount is not valid\n");
             }
         }
+    }
+
+    /**
+     * Prints the price for the specified amount(expressed in intergalactic units) of an item.
+     *
+     * @param intergalacticUnits The amount of an item expressed in intergalactic units
+     * @param item The item for which the price is calculated.
+     */
+    public void calculateItemPriceQuery(String[] intergalacticUnits, String item) {
+        for (String unit : intergalacticUnits) {
+            if (isReservedWord(unit) || !this.intergalacticUnits.containsKey(unit)) {
+                System.out.printf("%s is not a valid intergalactic unit\n", unit);
+                return;
+            }
+        }
+
+        if (!this.itemsCatalogue.containsKey(item)) {
+            System.out.printf("There is no known price information about %s\n", item);
+            return;
+        }
+
+        double queryResult = calculateItemPrice(intergalacticUnits, item);
+        if (queryResult != -1) {
+            StringBuilder str = new StringBuilder();
+            for (String unit : intergalacticUnits) {
+                str.append(unit.concat(" "));
+            }
+
+            DecimalFormat df = new DecimalFormat("#.##");
+            System.out.printf("%s %s is %s Credits\n",
+                    str.toString().trim(),
+                    item.substring(0, 1).toUpperCase().concat(item.substring(1)),
+                    df.format(queryResult));
+        }
+        else {
+            System.out.printf("The specified amount is not valid\n");
+        }
+    }
+
+    /**
+     * Calculates the price for the specified amount(expressed in intergalactic units) of an item.
+     *
+     * @param intergalacticUnits The amount of an item expressed in intergalactic units
+     * @param item The item for which the price is calculated.
+     * @return
+     */
+    private double calculateItemPrice(String[] intergalacticUnits, String item) {
+        int units = convertIntergalacticUnits(intergalacticUnits);
+        double itemPrice = this.itemsCatalogue.get(item);
+
+        if (units != -1) {
+            return units * itemPrice;
+        }
+
+        return -1;
     }
 
     /**
@@ -178,9 +239,9 @@ public class NotesService implements NotesServiceInterface {
 
         for (int i = 0; i < number.length(); i++) {
             if (i != number.length() - 1 && RomanNumberEnum.getDecimalValue(number.charAt(i)) <
-                    RomanNumberEnum.getDecimalValue(number.charAt(i + 1))) {
+                                            RomanNumberEnum.getDecimalValue(number.charAt(i + 1))) {
                 decimalNumber += RomanNumberEnum.getDecimalValue(number.charAt(i + 1)) -
-                        RomanNumberEnum.getDecimalValue(number.charAt(i));
+                                 RomanNumberEnum.getDecimalValue(number.charAt(i));
                 i++;
             }
             else {
